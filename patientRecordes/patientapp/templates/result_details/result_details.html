@@ -1,0 +1,66 @@
+{% extends 'index/index.html' %}
+
+{% block pages %}
+<div style="margin-top: 20vh;"></div>
+<div class="container mt-5">
+    <h2> {{ result.date }}</h2>
+    <h3><strong>analyst :</strong>  {{ result.analyst.full_name }}</h3>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">اسم التحليل</th>
+                <th scope="col">القيمة الحالية</th>
+                <th scope="col">Natrual range</th>
+                <th scope="col">Measurement unit</th>
+                <th scope="col">Categories</th>
+                <th scope="col">القيمة السابقة</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result_detail, sub_details in map.items %}
+                <tr>    
+                    <th scope="row">
+                        {% if result_detail.analysis_number.its_derivatives is None %}
+                            {{ forloop.counter }}
+                        {% else %}
+                            {{ forloop.parentloop.counter }}
+                        {% endif %}
+                    </th>
+                    <td>{{ result_detail.analysis_number.name }}</td>
+                    <td>{{ result_detail.result }}</td>
+                    <td>{{ result_detail.analysis_number.natrual_range }}</td>
+                    <td>
+                        {% if result_detail.analysis_number.measurement_unit|default_if_none:"" == "0" %}
+                            -
+                        {% else %}
+                            {{ result_detail.analysis_number.measurement_unit }}
+                        {% endif %}
+                    </td>
+                    <td>{{ result_detail.analysis_number.categories_analysis.name }}</td>
+                    <td>{{ result_detail.last_value }}</td>
+                </tr>
+                {% for sub_detail in sub_details %}
+                    <tr>
+                        <th scope="row">{{ forloop.parentloop.counter }}.{{ forloop.counter }}</th>
+                        <td>{{ sub_detail.analysis_number.name }}</td>
+                        <td>{{ sub_detail.result }}</td>
+                        <td>{{ sub_detail.analysis_number.natrual_range }}</td>
+                        <td>
+                            {% if sub_detail.analysis_number.measurement_unit|default_if_none:"" == "0" %}
+                                -
+                            {% else %}
+                                {{ sub_detail.analysis_number.measurement_unit }}
+                            {% endif %}
+                        </td>
+                        <td>{{ sub_detail.analysis_number.categories_analysis.name }}</td>
+                        <td>{{ sub_detail.last_value }}</td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 50vh;"></div>
+</div>
+{% endblock %}

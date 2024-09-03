@@ -1,0 +1,346 @@
+{% extends 'index/index.html' %}
+{% load static%}
+{% block pages %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Timeline</title>
+    <style>
+        #icon-record-audio {
+            font-size: 24px;
+            /* زيادة حجم الأيقونة إلى 24 بيكسل */
+        }
+
+        /* تصميم العناصر في الخط الزمني */
+        .timeline {
+            list-style: none;
+            padding: 0;
+            max-width: 90%;
+        }
+
+        .thumbnail {
+            max-width: 200px;
+            /* تحديد العرض الأقصى للصورة */
+            max-height: 200px;
+            /* تحديد الارتفاع الأقصى للصورة */
+            cursor: pointer;
+        }
+
+        #a {
+            margin-top: 20vh;
+        }
+
+        th {
+            border-bottom: 2px solid #007bff;
+
+            /* خط أزرق تحت العنوان */
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .timeline-icon {
+            background-color: #007bff;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            margin-right: 20px;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .thumbnail {
+            max-width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+
+        /* زيادة المسافة بين العناصر في الخط الزمني */
+        .timeline-item+.timeline-item {
+            margin-top: 20px;
+        }
+
+        /* زر التحميل */
+        .download-btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="a">
+    </div>
+    {% for image in images%}
+    <form action="{% url 'editreport' date=date user_id=user.id image_id=image.id %}" method="post">
+        <ul class="timeline">
+            <li class="timeline-item">
+                <div class="timeline-icon">{{ forloop.counter }}</div>
+                <div class="timeline-content">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>year</th>
+                                <th>Data</th>
+                                <th>image</th>
+                                <th>radio technician</th>
+                                <th></th>
+                                <th>Report</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <h5>{{ image.date_taken|date:'Y' }}</h5>
+                                </td>
+                                <td>
+                                    <h5>{{ image.date_taken|date:'M / D' }}</h5>
+                                </td>
+                                <td>
+                                    <img width="200px" class="thumbnail" src="{% url 'media' image.image %}" alt="صورة شعاعية">
+                                </td>
+                                <td>
+                                    {{ image.doctor }}
+                                </td>
+                                <td>
+                                    <div style="width: 100px;"></div>
+                                </td>
+                                <td style="max-width: 80vh;">
+                                    <span class="reportContent">{{ image.Report }}</span>
+                                    <textarea class="editInput" name="new_report" style="display: none;"></textarea>
+                                </td>
+                                <td>
+                                    {% if user.major.id == 2 %}
+                                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+                                    <i class="fa fa-microphone" id="icon-record-audio-{{ image.id }}" onclick="recordAudio({{ image.id }})" style="cursor: pointer;"></i>
+                                    <a class="edit-btn" href="javascript:void(0);" onclick="editReport(this)">تعديل</a>
+                                    <button type="submit" class="edit-btn confirmBtn" style="display: none;">تأكيد</button>
+                                    <a class="edit-btn cancelBtn" href="javascript:void(0);" style="display: none;" onclick="cancelEdit(this)">إلغاء</a>
+                                    <div id="timer-{{ image.id }}">05:00</div>
+                                    {% endif %}
+                                    {% if user.major.id == 1 %}
+                                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+                                    <i class="fa fa-microphone" id="icon-record-audio-{{ image.id }}" onclick="recordAudio({{ image.id }})" style="cursor: pointer;"></i>
+                                    <a class="edit-btn" href="javascript:void(0);" onclick="editReport(this)">تعديل</a>
+                                    <button type="submit" class="edit-btn confirmBtn" style="display: none;">تأكيد</button>
+                                    <a class="edit-btn cancelBtn" href="javascript:void(0);" style="display: none;" onclick="cancelEdit(this)">إلغاء</a>
+                                    <div id="timer-{{ image.id }}">05:00</div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        </ul>
+    </form>
+    <script>
+ function editReport(button) {
+    var container = button.parentElement.parentElement;
+    var reportContent = container.querySelector('.reportContent');
+    var editInput = container.querySelector('.editInput');
+    var editBtn = container.querySelector('.edit-btn');
+    var confirmBtn = container.querySelector('.confirmBtn');
+    var cancelBtn = container.querySelector('.cancelBtn');
+    console.log(container)
+    reportContent.style.display = 'none';
+    editInput.style.display = 'block';
+    editInput.value = reportContent.innerText;
+    editBtn.style.display = 'none';
+    confirmBtn.style.display = 'inline';
+    cancelBtn.style.display = 'inline';
+}
+
+function confirmEdit(button) {
+    var container = button.parentElement.parentElement;
+    var reportContent = container.querySelector('.reportContent');
+    var editInput = container.querySelector('.editInput');
+    var editBtn = container.querySelector('.edit-btn');
+    var confirmBtn = container.querySelector('.confirmBtn');
+    var cancelBtn = container.querySelector('.cancelBtn');
+
+    reportContent.innerText = editInput.value;
+    reportContent.style.display = 'inline';
+    editInput.style.display = 'none';
+    editBtn.style.display = 'inline';
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+}
+
+function cancelEdit(button) {
+    var container = button.parentElement.parentElement;
+    var reportContent = container.querySelector('.reportContent');
+    var editInput = container.querySelector('.editInput');
+    var editBtn = container.querySelector('.edit-btn');
+    var confirmBtn = container.querySelector('.confirmBtn');
+    var cancelBtn = container.querySelector('.cancelBtn');
+
+    reportContent.style.display = 'inline';
+    editInput.style.display = 'none';
+    editBtn.style.display = 'inline';
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+}
+        let recorder = null;
+        let timerInterval = null;
+
+        async function recordAudio(imageId) {
+            navigator.permissions.query({ name: 'microphone' })
+                .then(function (permissionObj) {
+                    console.log(permissionObj.state);
+                })
+                .catch(function (error) {
+                    console.log('Got error:', error);
+                });
+
+            recorder = await doRecordAudio(imageId);
+            recorder.start();
+        }
+
+        async function doRecordAudio(imageId) {
+            return new Promise(function (resolve) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(function (stream) {
+                        const mediaRecorder = new MediaRecorder(stream);
+                        const audioChunks = [];
+
+                        mediaRecorder.addEventListener("dataavailable", function (event) {
+                            audioChunks.push(event.data);
+                        });
+
+                        const start = function () {
+                            document.getElementById(`icon-record-audio-${imageId}`).className = "fa fa-stop-circle";
+                            document.getElementById(`icon-record-audio-${imageId}`).onclick = async function () {
+                                if (recorder !== null) {
+                                    const audio = await recorder.stop();
+                                    audio.play();
+                                    const reader = new FileReader();
+                                    reader.readAsDataURL(audio.audioBlob);
+                                    reader.onloadend = function () {
+                                        let base64 = reader.result;
+                                        base64 = base64.split(',')[1];
+                                        sendVoiceNote(base64, imageId);
+                                    };
+                                    clearInterval(timerInterval); // إيقاف تشغيل التايمر عند الضغط على إيقاف التسجيل
+                                }
+                            };
+
+                            // إضافة العداد الزمني
+                            let timerSeconds = 300; // 5 دقائق
+                            const timerElement = document.getElementById(`timer-${imageId}`);
+                            timerInterval = setInterval(function () {
+                                timerElement.innerText = formatTime(timerSeconds);
+                                timerSeconds--;
+
+                                // قم بتوقيف التسجيل عندما يصل العداد إلى صفر
+                                if (timerSeconds < 0) {
+                                    clearInterval(timerInterval);
+                                    stop();
+                                }
+                            }, 1000);
+
+                            mediaRecorder.start();
+                        };
+
+                        const stop = function () {
+                            return new Promise(function (resolve) {
+                                mediaRecorder.addEventListener("stop", function () {
+                                    document.getElementById(`icon-record-audio-${imageId}`).className = "fa fa-microphone";
+                                    document.getElementById(`icon-record-audio-${imageId}`).onclick = async function () {
+                                        recordAudio(imageId);
+                                    };
+                                    const audioBlob = new Blob(audioChunks);
+                                    const audioUrl = URL.createObjectURL(audioBlob);
+                                    const audio = new Audio(audioUrl);
+                                    const play = function () {
+                                        audio.play();
+                                    };
+                                    resolve({
+                                        audioBlob,
+                                        play
+                                    });
+                                });
+                                mediaRecorder.stop();
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 3000);
+
+                            });
+                        };
+
+                        resolve({
+                            start,
+                            stop
+                        });
+                    });
+            });
+        }
+
+        function sendVoiceNote(base64, imageId) {
+            var ajax = new XMLHttpRequest();
+            ajax.open("POST", "http://127.0.0.1:8000/sendvoice/" + imageId, true);
+
+            ajax.onreadystatechange = async function () {
+                if (this.readyState == 4) {
+                    if (this.status == 200) {
+                        console.log(this.responseText);
+                    }
+
+                    if (this.status == 500) {
+                        console.log(this.responseText);
+                    }
+                }
+            };
+
+            const formData = new FormData();
+            formData.append("base64", base64);
+            ajax.send(formData);
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${padZero(minutes)}:${padZero(remainingSeconds)}`;
+        }
+
+        function padZero(number) {
+            return (number < 10 ? '0' : '') + number;
+        }
+    </script>
+    {%endfor%}
+    
+</body>
+
+</html>
+{%endblock pages%}

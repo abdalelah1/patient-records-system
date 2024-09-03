@@ -1,0 +1,400 @@
+{% extends 'index/index.html' %}
+{% load static %}
+
+{% block pages %}
+
+<style>
+    /* تصميم بطاقة المريض */
+    .patient-card {
+        background: linear-gradient(to bottom, #007bff, #fff);
+        /* تدرج من الأزرق إلى الأبيض */
+        color: #333;
+        /* لون النص */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        width: 50%;
+        /* تحديد عرض البطاقة بنسبة معينة من عرض الصفحة */
+        text-align: center;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+    }
+
+    .logout-icon a span {
+        font-size: 20px;
+        /* تغيير حجم النص */
+        /* إضافة تأثير العريض للنص */
+        font-style: italic;
+        /* إضافة تأثير المائل للنص */
+    }
+
+    #footer {
+        /* أسلوب الفوتر العام هنا */
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #f1f7fd;
+        display: none;
+        z-index: 2;
+        /* زيادة الـ z-index لعنصر الفوتر */
+    }
+
+    /* تصميم الروابط */
+    .patient-card a {
+        color: #007bff;
+        /* لون الروابط الأزرق */
+        text-decoration: none;
+        border-bottom: 1px dashed #007bff;
+        margin-right: 10px;
+    }
+
+    /* تنسيق الجدول */
+    .patient-table {
+        width: 100%;
+        /* تمتد الجدول بالكامل */
+        border-collapse: collapse;
+        /* إخفاء الحدود بين الخلايا */
+        margin-top: 20px;
+    }
+
+    .patient-table td {
+        padding: 10px;
+        text-align: left;
+    }
+
+    /* تصميم الأيقونات */
+    .icon {
+        margin-right: 5px;
+    }
+</style>
+{% if patient%}
+<script>
+
+    function myFunction(user_id) {
+      let text = "Are u sure for logout? ";
+      if (confirm(text) == true) {
+        window.location.href = "/logout/" + user_id;
+      } else {
+        text = "You canceled!";
+      }
+    }
+    </script>
+<div class="patient-card">
+    <i class="fas fa-user icon"></i>
+    <h1>{{ patient.full_name }}</h1>
+    <table class="patient-table">
+
+
+        <tr>
+            <td><i class="fas fa-id-card icon"></i><strong>National ID:</strong> {{ patient.national_number }}</td>
+            <td>
+
+            </td>
+            <td><i class="fas fa-birthday-cake icon"></i><strong>Birthdate:</strong> {{ patient.birthdate }}</td>
+        </tr>
+        <tr>
+            <td><i class="fas fa-mobile-alt icon"></i><strong>Mobile:</strong> {{ patient.mobile }}</td>
+            <td>
+
+            </td>
+            <td><i class="fas fa-venus-mars icon"></i><strong>Gender:</strong> {{ patient.gender }}</td>
+        </tr>
+        {% if double_account%}
+        <tr>
+            <td><i class="fas fa-id-card icon"></i><strong>Major:</strong> {{ doctor.major }}</td>
+            <td>
+
+            </td>
+                </tr>
+        {%endif%}
+        {% if double_account%}
+        <td>
+   
+            <a href="{%url 'timelinex' patient_id=patient.id  user_id=doctor.id%}"><i
+                    class="fas fa-x-ray icon"></i>الصور الشعاعية</a>
+ 
+        </td>
+        <td>
+        </td>
+        <td>
+            <a href="{% url 'analysis' patient_id=patient.id  %}"><i class="fas fa-flask icon"></i>التحاليل</a>
+ 
+        </td>
+        {% elif user.patient and not user.users %}
+        <td>
+           <a href="{%url 'timelinex' patient_id=patient.id  user_id=1%}"><i
+                   class="fas fa-x-ray icon"></i>الصور الشعاعية</a>
+
+       </td>
+       <td>
+       </td>
+       <td>
+           <a href="{% url 'analysis' patient_id=patient.id  %}"><i class="fas fa-flask icon"></i>التحاليل</a>
+
+       </td>
+       {%elif user.patient and user.users  and user.users.major.id == 1%}
+        <td>
+           <a href="{%url 'timelinex' patient_id=patient.id  user_id=user.users.id %}"><i
+                   class="fas fa-x-ray icon"></i>الصور الشعاعية</a>
+
+       </td>
+       <td>
+       </td>
+       {%elif user.patient and user.users  and user.users.major.id == 4%}
+       <td>
+          <a href="{%url 'timelinex' patient_id=patient.id  user_id=user.users.id %}"><i
+                  class="fas fa-x-ray icon"></i>الصور الشعاعية</a>
+
+      </td>
+      <td>
+      </td>
+      {%elif  user.patient and user.users and user.users.major.id == 3%}
+      <td>
+          <a href="{% url 'analysis' patient_id=patient.id  %}"><i class="fas fa-flask icon"></i>التحاليل</a>
+
+      </td>
+
+
+
+        {%elif user.patient and user.users%}
+        <td>
+            <h1>here</h1>
+
+           <a href="{%url 'timelinex' patient_id=patient.id  user_id=user.users.id %}"><i
+                   class="fas fa-x-ray icon"></i>الصور الشعاعية</a>
+
+       </td>
+       <td>
+       </td>
+       <td>
+           <a href="{% url 'analysis' patient_id=patient.id  %}"><i class="fas fa-flask icon"></i>التحاليل</a>
+
+       </td>
+        {% elif user.users.major.id == 1%}
+        <tr>
+
+            <td>
+                <a href="{%url 'timelinex'  patient_id=patient.id  user_id=user.users.id %}"><i
+                        class="fas fa-x-ray icon"></i>الصور الشعاعية</a>
+
+            </td>
+            {% elif user.users.major.id == 4%}
+        <tr>
+
+            <td>
+                <a href="{%url 'timelinex' patient_id=patient.id  user_id=user.users.id%}"><i
+                        class="fas fa-x-ray icon"></i>الصور الشعاعية</a>
+
+            </td>
+            {%elif user.users.major.id == 3%}
+            <td>
+                <a href="{% url 'analysis' patient_id=patient.id  %}"><i class="fas fa-flask icon"></i>التحاليل</a>
+
+            </td>
+           
+            {%else%}
+            <td>
+
+                <a href="{%url 'timelinex' patient_id=patient.id  user_id=user.users.id %}"><i
+                        class="fas fa-x-ray icon"></i>الصور الشعاعية</a>
+
+            </td>
+            <td>
+            </td>
+            <td>
+                <a href="{% url 'analysis' patient_id=patient.id %}"><i class="fas fa-flask icon"></i>التحاليل</a>
+
+            </td>
+            {%endif%}
+
+
+        </tr>
+        {% if user.patient.id == patient.id%}
+        <tr>
+
+            <td>
+
+                <div class="logout-icon">
+                    <a href="#" data-toggle="modal" data-target="#confirmLogoutModal" onclick="myFunction({{user.id}})">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Log out</span>
+                    </a>
+                </div>
+            </td>
+         
+        </tr>
+        {%endif %}
+
+
+    </table>
+
+
+    <!-- روابط للصور الشعاعية والتحاليل -->
+</div>
+
+<!--  userر-->
+{%elif user %}
+<div class="patient-card">
+    <i class="fas fa-user icon"></i>
+    <h1>{{ user.full_name }}</h1>
+    <table class="patient-table">
+
+
+        <tr>
+            <td><i class="fas fa-id-card icon"></i><strong>Major</strong> {{ user.major.name }}</td>
+            <td>
+
+            </td>
+            <td><i class="fas fa-birthday-cake icon"></i><strong>Birthdate:</strong> {{ user.birthdate }}</td>
+        </tr>
+        <tr>
+            <td><i class="fas fa-mobile-alt icon"></i><strong>Mobile:</strong> {{ user.mobile }}</td>
+            <td>
+
+            </td>
+            <td><i class="fas fa-venus-mars icon"></i><strong>Gender:</strong> {{ user.gender }}</td>
+        </tr>
+
+
+        </tr>
+        {% if user.patient.id == patient.id%}
+        <tr>
+
+            <td>
+                <div class="logout-icon">
+                    <a href="#" data-toggle="modal" data-target="#confirmLogoutModal" onclick="myFunction({{user.id}})">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Log out</span>
+                    </a>
+                </div>
+            </td>
+ 
+        </tr>
+        <tr>
+
+            <td>
+                {% if user.patient %}
+                {%else %}
+
+                <button id="showCreateFormButton" class="btn btn-success create-patient-btn">
+                    <i class="fas fa-person"></i> Patient Account
+                </button>
+                <div id="CreateForm" style="display: none;">
+                    <div class="modal-body">
+                        <form method="post" enctype="multipart/form-data" action="{% url 'createPatientAccount' user.id  %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="national_number">national_number</label>
+                                <input type="number" class="form-control" name="national_number" id="national_number" required>
+                            </div>
+                            <button type="submit" class="btn btn-success" id="saveButton">Save</button>
+                        </form>
+                    </div>
+
+                </div>
+                {% endif %}
+            </td>
+
+        </tr>
+        <tr>
+            <td>
+                {% for message in messages %}
+                <li class="warning">{{ message }}</li>
+                 {% endfor %}
+            </td>
+        </tr>
+    </table>
+    <div class="modal fade" id="confirmLogoutButton" tabindex="-1" role="dialog" aria-labelledby="confirmLogoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmLogoutModalLabel">تأكيد تسجيل الخروج</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    هل أنت متأكد أنك تريد تسجيل الخروج؟
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <a href="" class="btn btn-primary">تأكيد</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+     document.addEventListener("DOMContentLoaded", function () {
+        var showCreateFormButton = document.getElementById("showCreateFormButton");
+        var createForm = document.getElementById("CreateForm");
+
+        showCreateFormButton.addEventListener("click", function () {
+            createForm.style.display = "block";
+        });
+
+        // تحديد الزر الذي يُستخدم لإخفاء النموذج
+        var hideCreateFormButton = document.getElementById("hideCreateFormButton");
+
+        // إضافة مستمع للنقر على الزر لإخفاء النموذج
+        hideCreateFormButton.addEventListener("click", function () {
+            createForm.style.display = "none";
+        });
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+    var confirmLogoutButton = document.getElementById("confirmLogoutButton");
+
+    confirmLogoutButton.addEventListener("click", function (event) {
+        event.preventDefault(); // منع السلوك الافتراضي للزر
+
+        // عرض النافذة المنبثقة
+        $('#confirmModal').modal('show');
+    });
+});
+</script>
+
+</tr>
+{%endif %}
+
+
+</table>
+<div id="confirmModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">تأكيد تسجيل الخروج</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                هل أنت متأكد أنك تريد تسجيل الخروج؟
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                <a id="confirmLogoutButton" href="" class="btn btn-primary">تأكيد</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+function myFunction(user_id) {
+  let text = "Are u sure for logout? ";
+  if (confirm(text) == true) {
+    window.location.href = "/logout/" + user_id;
+  } else {
+    text = "You canceled!";
+  }
+}
+</script>
+
+<!-- روابط للصور الشعاعية والتحاليل -->
+</div>
+{%endif%}
+{% endblock pages %}

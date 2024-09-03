@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>مسجل الصوت</title>
+    <style>
+        .recorder-container {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+            width: 30%;
+        }
+
+        .recorder-controls {
+            display: flex;
+            justify-content: space-between; /* يجعل الأيقونة إلى اليمين */
+            align-items: center;
+        }
+
+        .timer {
+            font-size: 24px;
+            margin: 0 15px;
+        }
+
+        .progress-bar-container {
+            width: 60%;
+            display: flex;
+            align-items: center;
+            margin: 0 15px;
+        }
+
+        .left-icons {
+            display: flex;
+            align-items: center;
+        }
+
+        .right-icons {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="recorder-container">
+            <div class="recorder-controls">
+                <div class="left-icons">
+                    <i id="delete-icon" class="fa fa-trash fa-2x text-danger d-none"></i>
+                </div>
+                <i id="start-icon" class="fa fa-play-circle fa-2x text-primary"></i>
+                <i id="stop-icon" class="fa fa-stop-circle fa-2x text-danger d-none"></i>
+                <div class="progress-bar-container">
+                    <div class="timer" id="time-display">00:00</div>
+                    <div class="progress" style="width: 100%;">
+                        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0;"></div>
+                    </div>
+                </div>
+                <div class="right-icons">
+                    <i id="send-icon" class="fa fa-paper-plane fa-2x text-success d-none"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+    <script>
+     $(document).ready(function () {
+    const startIcon = $("#start-icon");
+    const stopIcon = $("#stop-icon");
+    const timeDisplay = $("#time-display");
+    const progressBar = $("#progress-bar");
+    const deleteIcon = $("#delete-icon");
+    const sendIcon = $("#send-icon");
+
+    let isRecording = false;
+    let mediaRecorder;
+    let startTime;
+    let elapsedTime = 0;
+    let intervalId;
+    sendIcon.click(function () {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        stopRecording();
+    }
+
+    // يمكنك تحضير الملف الصوتي وإرساله إلى الخادم هنا
+    if (mediaRecorder.buffers.length > 0) {
+        const audioBlob = new Blob(mediaRecorder.buffers, { type: "audio/wav" });
+        const audioFile = new File([audioBlob], "audio.wav");
+
+        const formData = new FormData();
+        formData.append("audio", audioFile);
+
+        fetch('/upload_audio/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            // هنا يمكنك التعامل مع الاستجابة من الخادم
+            console.log(data);
+        })
+        .catch(error => {
+            // هنا يمكنك التعامل مع أي خطأ في الطلب
+            console.error(error);
+        });
+    }
+});
+    startIcon.click(function () {
+        startRecording();
+    });
+
+    stopIcon.click(function () {
+        stopRecording();
+        deleteIcon.removeClass("d-none"); // تظهر أيقونة الحذف عند الضغط على إيقاف
+        sendIcon.removeClass("d-none"); // تظهر أيقونة الإرسال عند الضغط على إيقاف
+    });
+
+    deleteIcon.click(function () {
+        if (mediaRecorder) {
+            mediaRecorder.clear();
+            console.log("Delete button clicked")    
+            startIcon.removeClass("d-none");
+            deleteIcon.addClass("d-none"); // إخفاء أيقونة الحذف
+            sendIcon.addClass("d-none"); // إخفاء أيقونة الإرسال
+            timeDisplay.text("00:00");
+            progressBar.css("width", "0%");
+        }
+    });
+
+    function startRecording() {
+        startIcon.addClass("d-none");
+        stopIcon.removeClass("d-none");
+
+        isRecording = true;
+        startTime = Date.now() - elapsedTime * 1000;
+
+        if (mediaRecorder) {
+            mediaRecorder.resume();
+        } else {
+            startMediaRecording();
+        }
+
+        intervalId = setInterval(updateTimer, 1000);
+    }
+
+    function stopRecording() {
+        stopIcon.addClass("d-none");
+
+        isRecording = false;
+
+        if (mediaRecorder) {
+            mediaRecorder.stop();
+        }
+
+        clearInterval(intervalId);
+    }
+
+    function startMediaRecording() {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function (stream) {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.buffers = [];
+                mediaRecorder.ondataavailable = function (e) {
+                    if (e.data.size > 0) {
+                        mediaRecorder.buffers.push(e.data);
+                    }
+                };
+
+                mediaRecorder.start();
+
+                mediaRecorder.onstop = function () {
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                };
+            })
+            .catch(function (err) {
+                console.error('Error accessing microphone:', err);
+            });
+    }
+
+    function updateTimer() {
+        if (isRecording) {
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            elapsedTime = currentTime;
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = currentTime % 60;
+            timeDisplay.text(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+
+            const percentage = (currentTime / 300) * 100; // 300 seconds (5 minutes)
+            progressBar.css("width", percentage + "%");
+        }
+    }
+});
+
+    </script>
+</body>
+</html>

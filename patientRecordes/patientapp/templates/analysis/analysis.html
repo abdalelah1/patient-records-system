@@ -1,0 +1,97 @@
+{%extends 'index/index.html'%}
+{%block pages%}
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحاليل المريض</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- أضف أي تصميم إضافي هنا -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Tahoma', sans-serif;
+        }
+
+        .container2 {
+            max-width: 800px;
+            margin-top: 50px;
+            
+        }
+
+        .card {
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: #fff;
+            text-align: center;
+        }
+
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <div class="container container2">
+        <h2 class="mb-4"> Patient's Test : <strong>{{ patient.full_name }}</strong></h2>
+        {% if user.users.major.id == 3 %}
+        <div class="text-center">        <a href="{% url 'analysis_input' patient_id=patient.id %}" class="btn btn-primary mb-3">
+            <i class="fas fa-upload"></i> رفع تحليل جديد
+        </a></div>
+        {% endif %}
+
+
+        {% for year, months_data in patient_results.items %}
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ year }}</h3>
+            </div>
+            <div class="card-body">
+                {% for month, days_data in months_data.items %}
+                <h5>{{ month }}</h5>
+                <ul class="list-group">
+                    {% for day, day_results in days_data.items %}
+                    {% for dy  in day_results %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ day }}
+                       <span class="badge badge-primary badge-pill">{{dy.analyst.full_name}} </span>
+                       <a href="{% url 'result_details' result_id=dy.analysis_sequence %}">عرض التفاصيل</a>
+                   </li>
+                        
+                    {% endfor %}
+
+                    
+
+                        
+                    {% endfor %}
+                </ul>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+       
+        <!-- يمكنك إضافة بطاقات إضافية حسب الحاجة لشهور أو سنوات أخرى -->
+    </div>
+    <div style="margin-bottom: 400px;"></div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock pages%}

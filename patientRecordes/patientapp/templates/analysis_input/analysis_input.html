@@ -1,0 +1,105 @@
+{% extends 'index/index.html' %}
+
+{% block pages %}
+    
+
+    
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدخال التحاليل</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .body {
+          
+            background-color: #f8f9fa;
+            font-family: 'Tahoma', sans-serif;
+
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin-top: 10vh;
+        }
+
+        .container3 {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .analysis-group {
+            width: 30%; /* تحديد عرض كل تحليل أساسي */
+            margin-bottom: 20px;
+        }
+
+        .analysis-group h2 {
+            font-size: 1.5rem;
+            color: #007bff; /* لون أزرق جذاب */
+        }
+
+        .options-container {
+            padding-left: 20px;
+        }
+
+        .options-container .custom-control {
+            margin-bottom: 10px;
+            margin-left: 20px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        /* أيقونات Font Awesome */
+        .fa-check-square { color: #28a745; } /* أيقونة صح */
+        .fa-flask { color: #007bff; } /* أيقونة اللون الأزرق للأنابيب */
+    </style>
+</head>
+<body>
+    <form class="body" method="post">
+        {% csrf_token %}
+    <div class="container container3">
+
+        {% for category, sub_analyses_list in analyses_map.items %}
+            <div class="analysis-group">
+                <h2><i class="fas fa-flask"></i> {{ category }}</h2>
+                <div class="options-container">
+                    {% for sub_analysis in sub_analyses_list %}
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="{{ sub_analysis }}" name="{{ sub_analysis }}">
+                            <label class="custom-control-label" for="{{ sub_analysis }}"><i class="far fa-check-square"></i> {{ sub_analysis }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- يمكنك إضافة تحاليل أخرى هنا -->
+
+        <button type="submit" class="btn btn-primary">Entry</button>
+    </form>
+
+    </div>
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock pages %}

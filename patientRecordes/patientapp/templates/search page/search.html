@@ -1,0 +1,198 @@
+{% extends 'index/index.html' %}
+{% load static%}
+{% block pages %}
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #searchResults {
+            margin-top: 20px;
+
+        }
+
+        table th, table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+        }
+
+        .btn-view-details {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-view-details:hover {
+            background-color: #0056b3;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .form-container {
+            max-width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .fieldcontainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 80px);
+            border: 1px solid #080101;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn-search {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-search:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <div class="fieldcontainer">
+        <h1>Patient Search</h1>
+        <form id="form" method="get">
+            <div class="form-group">
+                <label for="nationalID" class="form-label">National ID Number:</label>
+                <input type="number" id="nationalID" name="national_number" class="form-control" placeholder="Enter National ID Number" required>
+            </div>
+            <div class="form-group">
+                <button type="button" id="searchButton" class="btn-search">Search</button>
+            </div>
+        </form>
+        <div id="searchResults">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>National ID</th>
+                        <th>gender</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="searchResultsTableBody">
+                    <!-- هنا سيتم إضافة الصفوف بناءً على نتائج البحث -->
+                    <!-- يمكنك استخدام دورة لعرض جميع النتائج هنا -->
+                </tbody>
+            </table>
+        </div>
+        <div id="errorMessage"></div> <!-- إضافة عنصر لرسائل الخطأ -->
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("form");
+            const searchButton = document.getElementById("searchButton");
+            const searchResultsTable = document.getElementById("searchResults").querySelector("table");
+            const searchResultsTableBody = document.getElementById("searchResultsTableBody"); // الحصول على tbody
+            const errorMessage = document.getElementById("errorMessage");
+
+            // إبقاء الجدول مختفيًا عند بدء الصفحة
+            searchResultsTable.style.display = "none";
+
+            searchButton.addEventListener("click", function () {
+                const nationalID = document.getElementById("nationalID").value;
+
+                if (!nationalID) {
+                    // التعامل مع الحالة عندما يكون الإدخال فارغًا
+                    errorMessage.textContent = "Please enter a National ID Number.";
+                    errorMessage.style.display = "block";
+
+                    // إخفاء الجدول إذا كان مرئيًا
+                    searchResultsTable.style.display = "none";
+                    return;
+                }
+
+                // إذا كان هناك رقم وطني، قم بإخفاء رسالة الخطأ وجعل الجدول مختفيًا
+                errorMessage.style.display = "none";
+                searchResultsTable.style.display = "none";
+                searchResultsTableBody.innerHTML = "";
+                // قم بإجراء طلب AJAX إلى عرض Django الخاص بالبحث عن المرضى
+                fetch(`/search_patient/?national_number=${nationalID}`)
+                    .then(response => response.json())
+                    .then(data => {
+
+                        if (data.success) {
+                            // إذا وجدت نتائج، قم بإضافة النتائج إلى الجدول
+                            const newRow = searchResultsTableBody.insertRow();
+                            newRow.innerHTML = `
+                                <td>${data.context.full_name}</td>
+                                <td>${data.context.national_number}</td>
+                                <td>${data.context.gender}</td>
+                                <td><a href="http://127.0.0.1:8000/getpatientinfo/${data.context.id}/" class="viewDetailsButton">View Details</a></td>
+                            `;
+                            // عرض الجدول بعد إضافة الصف
+                            searchResultsTable.style.display = "table";
+                            console.log(searchResultsTable.style.display )
+                        } else {
+                            // إذا لم يتم العثور على مريض، قم بعرض رسالة الخطأ بلون أحمر
+                            errorMessage.textContent = "No results found.";
+                            errorMessage.style.color = "red";
+                            errorMessage.style.display = "block";
+
+                            // إخفاء الجدول إذا كان مرئيًا
+                            searchResultsTable.style.display = "none";
+                        }
+                        
+                    
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                    });
+            });
+        });
+    </script>
+
+{% endblock pages %}

@@ -1,0 +1,50 @@
+{% extends 'index/index.html' %}
+
+{% block pages %}
+<div style="margin-top: 20vh;"></div>
+<div class="container mt-5">
+    
+    <h2 class="text-center">إدخال نتائج التحاليل</h2>
+
+    <form method="post" action="{% url 'save_results' patient_id=patient_id %}">
+        {% csrf_token %}
+
+        {% for analysis_name, sub_analyses in analyses_names.items %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>{{ analysis_name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="{{ analysis_name }}_result">نتيجة التحليل:</label>
+                    <input type="text" class="form-control" id="{{ analysis_name }}_result" name="{{ analysis_name }}_result" required>
+                </div>
+                
+                {% if sub_analyses %}
+                <div class="sub-analyses mt-3">
+                    <p><strong>التحاليل الفرعية:</strong></p>
+                    <ul>
+                        {% for sub_analysis in sub_analyses %}
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5>{{ sub_analysis }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="{{ sub_analysis }}_result">نتيجة التحليل:</label>
+                                    <input type="text" class="form-control" id="{{ sub_analysis }}_result" name="{{ sub_analysis }}_result" required>
+                                </div>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary">حفظ النتائج</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
